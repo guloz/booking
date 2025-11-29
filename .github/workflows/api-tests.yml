@@ -1,0 +1,65 @@
+name: API Tests (RestAssured + Cucumber + Allure)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Java (use 21 unless your pom says otherwise)
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '23'
+          cache: 'maven'
+
+      # 3. Run Maven tests (JUnit + Cucumber + Allure hooks all together)
+      - name: Run tests
+        run: mvn -B test
+
+      # 4. Upload JUnit/Cucumber XML reports (for debugging in CI)
+      - name: Upload JUnit & Cucumber XML reports
+        if: always()   # even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-and-cucumber-xml
+          path: |
+            **/target/surefire-reports/*.xml
+            **/target/failsafe-reports/*.xml
+            **/target/cucumber/*.xml
+          if-no-files-found: ignore
+
+      # 5. Upload raw Allure results (JSON + attachments)
+      - name: Upload Allure raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: |
+            **/target/allure-results/**
+          if-no-files-found: ignore
+
+      # 6. (Optional) Generate Allure HTML report inside CI if you use allure-maven plugin
+      # Uncomment this block ONLY if your pom.xml has the allure-maven plugin configured.
+      - name: Generate Allure HTML report
+        if: always()
+        run: mvn allure:report
+
+      - name: Upload Allure HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-html
+          path: |
+             **/target/site/allure-maven-plugin/**
+          if-no-files-found: ignore
