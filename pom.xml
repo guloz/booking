@@ -111,7 +111,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>24</release>
+                    <release>24</release> <!-- Compile for JDK 24 -->
                 </configuration>
             </plugin>
         </plugins>
